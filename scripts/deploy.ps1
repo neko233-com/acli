@@ -73,7 +73,7 @@ git add -A
 git commit -m "chore: release $newVersion"
 
 Write-Host "[6/6] Pushing tag $newVersion..."
-git tag -d $newVersion 2>$null
+git tag -d $newVersion 2>&1 | Out-Null
 git tag -a $newVersion -m "Release $newVersion"
 
 git push origin $Branch
