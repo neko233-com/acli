@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	updateRepo     = "neko233-com/unicli"
-	updateBinary   = "unicli"
-	githubAPI      = "https://api.github.com/repos/" + updateRepo + "/releases"
+	updateRepo      = "neko233-com/unicli"
+	updateBinary    = "unicli"
+	githubAPI       = "https://api.github.com/repos/" + updateRepo + "/releases"
 	updateUserAgent = "unicli/" + updateBinary
 )
 
