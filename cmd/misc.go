@@ -17,7 +17,7 @@ var updateCmd = &cobra.Command{
 	Short: "Check for updates",
 	Long:  `Check if a newer version of netgo is available.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		currentVersion := "v!NEW_VERSION!"
+		currentVersion := "vv ..1"
 		fmt.Printf("Current version: %s\n", currentVersion)
 
 		resp, err := http.Get("https://api.github.com/repos/neko233-com/netgo/releases/latest")
