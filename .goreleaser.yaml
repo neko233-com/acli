@@ -1,0 +1,37 @@
+projectName: unicli
+format:
+  - zip
+  - tar.gz
+archives:
+  - id: default
+    builds:
+      - windows-amd64
+      - windows-arm64
+      - linux-amd64
+      - linux-arm64
+      - darwin-amd64
+      - darwin-arm64
+    fileTemplates:
+      - '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}.{{ .Ext }}'
+checksums:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs'
+      - '^test'
+      - '^chore'
+release-templates:
+  - name: default
+    env:
+      - GORELEASER_CURRENT_TAG={{ .Tag }}
+      - GORELEASER_PREVIOUS_TAG={{ .PreviousTag }}
+    files:
+      - glob: dist/*
+        excludes:
+          - '*.md5'
+    checksum:
+      extra: "Created by netgo CI"

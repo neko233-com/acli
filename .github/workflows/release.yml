@@ -1,0 +1,163 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Lint
+        run: |
+          go install golang.org/x/tools/cmd/goimports@latest
+          goimports -l -w .
+          go fmt ./...
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Test
+        run: go test -v -race -cover ./...
+
+  build:
+    needs: [lint, test]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        goarch: [amd64, arm64]
+        include:
+          - os: windows-latest
+            goos: windows
+            extension: .exe
+          - os: ubuntu-latest
+            goos: linux
+            extension: ''
+          - os: macos-latest
+            goos: darwin
+            extension: ''
+        exclude:
+          - os: windows-latest
+            goarch: arm64
+          - os: ubuntu-latest
+            goarch: arm64
+          - os: macos-latest
+            goarch: amd64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Build
+        run: |
+          mkdir -p dist
+          FILE_NAME="unicli-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }}"
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
+            go build -ldflags="-s -w" -o "dist/${FILE_NAME}" .
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: unicli-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
+          retention-days: 30
+
+  release:
+    needs: [lint, test, build]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          if command -v sha256sum &> /dev/null; then
+            sha256sum * > checksums.txt
+          elif command -v shasum &> /dev/null; then
+            shasum -a 256 * > checksums.txt
+          else
+            powershell -Command "Get-ChildItem . -File | ForEach-Object { (Get-FileHash \$_.FullName -Algorithm SHA256).Hash + '  ' + \$_.Name } | Out-File checksums.txt"
+          fi
+          cat checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Binary size report
+  size-report:
+    needs: [build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: List binaries
+        run: |
+          echo "## Binary Sizes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Arch | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|------|------|" >> $GITHUB_STEP_SUMMARY
+          for f in dist/unicli-*; do
+            size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f" 2>/dev/null || powershell -Command "(Get-Item '$f').Length")
+            name=$(basename "$f")
+            echo "| ${name} | $(echo $size | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
+          done
+          cat $GITHUB_STEP_SUMMARY

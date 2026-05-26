@@ -1,0 +1,27 @@
+NAME
+    unicli - cross-platform network & process CLI tool
+
+SYNOPSIS
+    unicli [--version] [--help] <command> [args]
+
+DESCRIPTION
+    unicli is a cross-platform CLI tool designed to query network and process
+    information with minimal learning curve.
+
+COMMANDS
+    ip              Show local IP addresses
+    port <port>     Check if a port is in use
+    ps              List running processes
+    conn            Show network connections
+    connect <host>  Test connectivity to a host
+    kill <pid>      Kill a process by PID
+
+EXAMPLES
+    unicli ip
+    unicli port 8080
+    unicli ps
+    unicli connect 8.8.8.8
+    unicli kill 1234
+
+WEBSITE
+    https://github.com/neko233-com/unicli
