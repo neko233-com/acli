@@ -157,7 +157,7 @@ go build -ldflags="-s -w" -o unicli.exe .
 | Command | Description |
 |---------|-------------|
 | `unicli version` | Show version info |
-| `unicli update` | Check for updates |
+| `unicli update` | Self-update to latest release (`-y` / `--check` / `--version`) |
 | `unicli completion <shell>` | Generate completion script |
 | `unicli doc` | Open documentation |
 

@@ -157,7 +157,7 @@ go build -ldflags="-s -w" -o unicli.exe .
 | 命令 | 描述 |
 |------|------|
 | `unicli version` | 显示版本信息 |
-| `unicli update` | 检查更新 |
+| `unicli update` | 自更新到最新版本（`-y` / `--check` / `--version`） |
 | `unicli completion <shell>` | 生成命令补全脚本 |
 | `unicli doc` | 打开文档页面 |
 

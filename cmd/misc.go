@@ -1,10 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
@@ -12,36 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var currentVersion = "v1.0.3"
-
-var updateCmd = &cobra.Command{
-	Use:   "update",
-	Short: "Check for updates",
-	Long:  `Check if a newer version of unicli is available.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Current version: %s\n", currentVersion)
-
-		resp, err := http.Get("https://api.github.com/repos/neko233-com/unicli/releases/latest")
-		if err != nil {
-			fmt.Printf("Could not check for updates: %v\n", err)
-			return
-		}
-		defer resp.Body.Close()
-
-		var result map[string]interface{}
-		data, _ := io.ReadAll(resp.Body)
-		json.Unmarshal(data, &result)
-
-		if tag, ok := result["tag_name"].(string); ok {
-			fmt.Printf("Latest version: %s\n", tag)
-			if tag != currentVersion {
-				fmt.Println("A newer version is available!")
-			} else {
-				fmt.Println("You are running the latest version.")
-			}
-		}
-	},
-}
+var currentVersion = "v1.0.6"
 
 var completionCmd = &cobra.Command{
 	Use:   "completion [bash|zsh|fish|powershell]",
