@@ -12,15 +12,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var currentVersion = "v1.0.0"
+
 var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Check for updates",
-	Long:  `Check if a newer version of netgo is available.`,
+	Long:  `Check if a newer version of unicli is available.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		currentVersion := "vv ..1"
 		fmt.Printf("Current version: %s\n", currentVersion)
 
-		resp, err := http.Get("https://api.github.com/repos/neko233-com/netgo/releases/latest")
+		resp, err := http.Get("https://api.github.com/repos/neko233-com/unicli/releases/latest")
 		if err != nil {
 			fmt.Printf("Could not check for updates: %v\n", err)
 			return
@@ -33,7 +34,7 @@ var updateCmd = &cobra.Command{
 
 		if tag, ok := result["tag_name"].(string); ok {
 			fmt.Printf("Latest version: %s\n", tag)
-			if tag != "v"+currentVersion {
+			if tag != currentVersion {
 				fmt.Println("A newer version is available!")
 			} else {
 				fmt.Println("You are running the latest version.")
@@ -45,21 +46,21 @@ var updateCmd = &cobra.Command{
 var completionCmd = &cobra.Command{
 	Use:   "completion [bash|zsh|fish|powershell]",
 	Short: "Generate completion script",
-	Long: `Generate shell completion script for netgo.
+	Long: `Generate shell completion script for unicli.
 
 To load completions:
 
 Bash:
 
-  $ source <(netgo completion bash)
+  $ source <(unicli completion bash)
 
   # To load completions for each session, execute once:
 
   # Linux:
-  $ netgo completion bash > /etc/bash_completion.d/netgo
+  $ unicli completion bash > /etc/bash_completion.d/unicli
 
   # macOS:
-  $ netgo completion bash > /usr/local/etc/bash_completion.d/netgo
+  $ unicli completion bash > /usr/local/etc/bash_completion.d/unicli
 
 Zsh:
 
@@ -68,14 +69,14 @@ Zsh:
 
   # autoload - compinit; compinit
 
-  $ netgo completion zsh > "${fpath[1]}/_netgo"
+  $ unicli completion zsh > "${fpath[1]}/_unicli"
 
 Fish:
 
-  $ netgo completion fish | source
+  $ unicli completion fish | source
 
   # To load completions for each session, execute once:
-  $ netgo completion fish > ~/.config/fish/completions/netgo.fish`,
+  $ unicli completion fish > ~/.config/fish/completions/unicli.fish`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		shell := args[0]
@@ -97,21 +98,21 @@ Fish:
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Show version information",
-	Long:  `Display version and build information for netgo.`,
+	Long:  `Display version and build information for unicli.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("netgo v1.0.0")
+		fmt.Printf("unicli %s\n", currentVersion)
 		fmt.Printf("Go version: %s\n", runtime.Version())
 		fmt.Printf("Platform:   %s/%s\n", runtime.GOOS, runtime.GOARCH)
-		fmt.Println("\nWebsite: https://github.com/neko233-com/netgo")
+		fmt.Println("\nWebsite: https://github.com/neko233-com/unicli")
 	},
 }
 
 var docCmd = &cobra.Command{
 	Use:   "doc",
 	Short: "Open documentation",
-	Long:  `Open the netgo documentation in browser.`,
+	Long:  `Open the unicli documentation in browser.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		docURL := "https://github.com/neko233-com/netgo#readme"
+		docURL := "https://github.com/neko233-com/unicli#readme"
 		fmt.Printf("Opening: %s\n", docURL)
 
 		var cmdExec *exec.Cmd
