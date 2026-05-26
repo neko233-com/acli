@@ -3,9 +3,11 @@ package cmd
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -71,9 +73,11 @@ var httpCmd = &cobra.Command{
 
 		if parsedURL.Scheme == "https" {
 			fmt.Println("TLS Info:")
-			fmt.Printf("  Protocol: %s\n", resp.TLS.Version)
-			fmt.Printf("  Cipher:   %s\n", resp.TLS.CipherSuite)
-			fmt.Printf("  Server:   %s\n", resp.TLS.ServerName)
+			if resp.TLS != nil {
+				fmt.Printf("  TLS Version: %d.%d\n", resp.TLS.Version>>8, resp.TLS.Version&0xFF)
+				fmt.Printf("  Cipher:      %s\n", tls.CipherSuiteName(resp.TLS.CipherSuite))
+				fmt.Printf("  Server:      %s\n", resp.TLS.ServerName)
+			}
 		}
 	},
 }
@@ -99,7 +103,7 @@ var httpsCheckCmd = &cobra.Command{
 			fmt.Sscanf(parts[1], "%d", &port)
 		}
 
-		conn, err := tls.Dial("tcp", fmt.Sprintf("%s:%d", host, port), nil)
+		conn, err := tls.Dial("tcp", net.JoinHostPort(host, strconv.Itoa(port)), nil)
 		if err != nil {
 			fmt.Printf("Connection failed: %v\n", err)
 			os.Exit(1)

@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -93,7 +94,7 @@ var netcatCmd = &cobra.Command{
 		defer conn.Close()
 
 		fmt.Printf("Connected to %s\n", addr)
-		fmt.Println("Type messages and press Enter to send. Press Ctrl+C to exit.\n")
+		fmt.Println("Type messages and press Enter to send. Press Ctrl+C to exit.")
 
 		go func() {
 			buf := make([]byte, 1024)
@@ -141,7 +142,7 @@ var portScanCmd = &cobra.Command{
 
 		open := 0
 		for _, port := range commonPorts {
-			addr := fmt.Sprintf("%s:%d", host, port)
+			addr := net.JoinHostPort(host, strconv.Itoa(port))
 			conn, err := net.DialTimeout("tcp", addr, time.Second)
 			if err == nil {
 				conn.Close()

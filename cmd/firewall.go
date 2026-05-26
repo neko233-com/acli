@@ -32,7 +32,7 @@ var firewallCmd = &cobra.Command{
 }
 
 func showWindowsFirewall(showAll bool) {
-	fmt.Println("=== Windows Firewall Rules ===\n")
+	fmt.Println("=== Windows Firewall Rules ===")
 
 	_ = showAll // used for future filtering
 
@@ -78,7 +78,7 @@ func showWindowsFirewall(showAll bool) {
 }
 
 func showLinuxFirewall(showAll bool) {
-	fmt.Println("=== Linux Firewall Rules ===\n")
+	fmt.Println("=== Linux Firewall Rules ===")
 
 	iptablesExists := isCommandAvailable("iptables")
 
@@ -101,7 +101,7 @@ func showLinuxFirewall(showAll bool) {
 }
 
 func showMacFirewall(showAll bool) {
-	fmt.Println("=== macOS Firewall Rules ===\n")
+	fmt.Println("=== macOS Firewall Rules ===")
 
 	if isCommandAvailable("pfctl") {
 		cmdExec := exec.Command("pfctl", "-s", "rules")

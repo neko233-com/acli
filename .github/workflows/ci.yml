@@ -1,12 +1,17 @@
-name: Release
+name: CI
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
@@ -37,11 +42,11 @@ jobs:
       - name: Test
         run: go test -v -count=1 ./...
 
-  build:
+  build-matrix:
     name: Build (${{ matrix.goos }}/${{ matrix.goarch }})
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -77,42 +82,3 @@ jobs:
         run: |
           mkdir -p dist
           go build -ldflags="-s -w" -o "dist/unicli-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}" .
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: unicli-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/unicli-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
-          retention-days: 7
-
-  release:
-    name: Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all binaries
-        uses: actions/download-artifact@v4
-        with:
-          path: dist
-          merge-multiple: true
-
-      - name: Generate checksums
-        run: |
-          cd dist
-          ls -la
-          sha256sum unicli-* > checksums.txt 2>/dev/null || shasum -a 256 unicli-* > checksums.txt
-          cat checksums.txt
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/unicli-*
-            dist/checksums.txt
-          generate_release_notes: true
-          name: ${{ github.ref_name }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

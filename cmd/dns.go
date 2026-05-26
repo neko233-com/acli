@@ -25,7 +25,11 @@ var dnsCmd = &cobra.Command{
 
 		fmt.Println("IP Addresses (A/AAAA):")
 		for _, ip := range ips {
-			fmt.Printf("  %s (%s)\n", ip.String(), ip.To4() != nil)
+			family := "IPv6"
+			if ip.To4() != nil {
+				family = "IPv4"
+			}
+			fmt.Printf("  %s (%s)\n", ip.String(), family)
 		}
 
 		cname, err := net.LookupCNAME(domain)

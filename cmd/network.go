@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -46,7 +47,7 @@ var connectCmd = &cobra.Command{
 		fmt.Printf("Testing connectivity to %s...\n\n", host)
 
 		for _, port := range ports {
-			addr := fmt.Sprintf("%s:%d", host, port)
+			addr := net.JoinHostPort(host, strconv.Itoa(port))
 			conn, err := net.Dial("tcp", addr)
 			if err != nil {
 				fmt.Printf("  Port %d: CLOSED\n", port)

@@ -8,8 +8,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"net"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -196,7 +198,7 @@ var crtLookupCmd = &cobra.Command{
 			fmt.Sscanf(parts[1], "%d", &port)
 		}
 
-		conn, err := tls.Dial("tcp", fmt.Sprintf("%s:%d", host, port), nil)
+		conn, err := tls.Dial("tcp", net.JoinHostPort(host, strconv.Itoa(port)), nil)
 		if err != nil {
 			fmt.Printf("Connection failed: %v\n", err)
 			os.Exit(1)

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -38,7 +39,7 @@ var scanCmd = &cobra.Command{
 				sem <- struct{}{}
 				defer func() { <-sem }()
 
-				addr := fmt.Sprintf("%s:%d", host, p)
+				addr := net.JoinHostPort(host, strconv.Itoa(p))
 				conn, err := net.DialTimeout("tcp", addr, time.Second)
 				if err == nil {
 					conn.Close()
