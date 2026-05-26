@@ -73,8 +73,15 @@ git add -A
 git commit -m "chore: release $newVersion"
 
 Write-Host "[6/6] Pushing tag $newVersion..."
-git tag -d $newVersion 2>&1 | Out-Null
-git tag -a $newVersion -m "Release $newVersion"
+$prevEA = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+git tag -d $newVersion 2>$null | Out-Null
+$ErrorActionPreference = $prevEA
+
+git tag -a $newVersion -m "Release $newVersion" 2>$null
+if ($LASTEXITCODE -ne 0) {
+    git tag -f -a $newVersion -m "Release $newVersion"
+}
 
 git push origin $Branch
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
