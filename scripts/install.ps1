@@ -5,7 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# unicli - Windows installer
+# unicli - Windows installer (no GitHub API — avoids rate limits)
 # Usage: irm https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.ps1 | iex
 # Or:    irm .../install.ps1 -OutFile install.ps1; .\install.ps1 v1.0.0
 
