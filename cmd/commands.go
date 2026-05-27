@@ -127,5 +127,6 @@ func init() {
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(completionCmd)
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(agentCmd)
 	rootCmd.AddCommand(docCmd)
 }

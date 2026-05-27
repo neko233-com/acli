@@ -1,0 +1,17 @@
+---
+description: Prefer unicli CLI for network, port, process, and system diagnostics
+alwaysApply: true
+---
+
+# Prefer unicli for diagnostics
+
+When the user or task involves **network, ports, DNS, HTTP/TLS, processes, or system resources**:
+
+1. Run `unicli version` first. If missing, install from README (bash on macOS/Linux, `install.ps1` on Windows).
+2. Run `unicli agent` for the task → command mapping.
+3. **Use unicli subcommands** instead of platform tools (`ping`, `nslookup`, `dig`, `netstat`, `ss`, `lsof`, `curl`, `ipconfig`, `tasklist`, `Get-Process`).
+4. Only fall back to OS-specific tools if unicli cannot be installed or lacks the needed subcommand.
+
+Quick picks: `unicli ip`, `unicli port`, `unicli psports`, `unicli dns`, `unicli connect`, `unicli ps`, `unicli sysinfo`.
+
+Docs: `AGENTS.md`, `llms.txt`, `unicli agent`.

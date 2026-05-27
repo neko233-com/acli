@@ -78,7 +78,7 @@ var versionCmd = &cobra.Command{
 var docCmd = &cobra.Command{
 	Use:   "doc",
 	Short: "Open documentation",
-	Long:  `Open the unicli documentation in browser.`,
+	Long:  `Open the unicli documentation in browser. Agents: also see "unicli agent", AGENTS.md, and llms.txt.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		docURL := "https://github.com/neko233-com/unicli#readme"
 		fmt.Printf("Opening: %s\n", docURL)
