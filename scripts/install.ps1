@@ -20,6 +20,71 @@ function Get-NormalizedVersion([string]$Value) {
     return $v
 }
 
+function Test-PathInUserPath([string]$Dir) {
+    $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    if ([string]::IsNullOrWhiteSpace($userPath)) { return $false }
+
+    $normalizedDir = (Resolve-Path -LiteralPath $Dir).Path.TrimEnd('\')
+    foreach ($entry in $userPath -split ';') {
+        if ([string]::IsNullOrWhiteSpace($entry)) { continue }
+        try {
+            $normalizedEntry = (Resolve-Path -LiteralPath $entry -ErrorAction Stop).Path.TrimEnd('\')
+            if ($normalizedEntry -ieq $normalizedDir) { return $true }
+        } catch {
+            if ($entry.TrimEnd('\') -ieq $normalizedDir) { return $true }
+        }
+    }
+    return $false
+}
+
+function Add-BinaryLink([string]$Source, [string]$TargetDir) {
+    $linkPath = Join-Path $TargetDir "$BinaryName.exe"
+    if (Test-Path -LiteralPath $linkPath) {
+        Remove-Item -LiteralPath $linkPath -Force
+    }
+
+    try {
+        New-Item -ItemType HardLink -Path $linkPath -Target $Source -Force | Out-Null
+        return $linkPath
+    } catch {
+        Copy-Item -LiteralPath $Source -Destination $linkPath -Force
+        return $linkPath
+    }
+}
+
+function Add-ToUserPath([string]$Dir) {
+    $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    $normalizedDir = (Resolve-Path -LiteralPath $Dir).Path
+
+    if (Test-PathInUserPath $normalizedDir) { return $false }
+
+    $newPath = if ([string]::IsNullOrWhiteSpace($userPath)) {
+        $normalizedDir
+    } else {
+        "$normalizedDir;$userPath"
+    }
+
+    [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
+    return $true
+}
+
+function Notify-PathChanged {
+    $signature = @'
+[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+public static extern IntPtr SendMessageTimeout(
+    IntPtr hWnd, uint Msg, UIntPtr wParam, string lParam,
+    uint fuFlags, uint uTimeout, out UIntPtr lpdwResult);
+'@
+    try {
+        Add-Type -MemberDefinition $signature -Name NativeMethods -Namespace Win32 -ErrorAction Stop
+        $null = [UIntPtr]::Zero
+        [Win32.NativeMethods]::SendMessageTimeout(
+            [IntPtr]0xffff, 0x1A, [UIntPtr]::Zero, "Environment", 2, 5000, [ref]$null) | Out-Null
+    } catch {
+        # Best-effort only; a new terminal still picks up registry PATH.
+    }
+}
+
 if ($Version -eq "latest" -or [string]::IsNullOrWhiteSpace($Version)) {
     $url = "https://github.com/$Repo/releases/latest/download/$Asset"
     $versionLabel = "latest"
@@ -37,14 +102,35 @@ Write-Host "Downloading $url..."
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 Invoke-WebRequest -Uri $url -OutFile $dest
 
-$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if ($userPath -notlike "*$InstallDir*") {
-    $newPath = if ($userPath) { "$userPath;$InstallDir" } else { $InstallDir }
-    [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
-    $env:Path = "$env:Path;$InstallDir"
-    Write-Host "Added $InstallDir to user PATH."
+$pathCandidates = @(
+    (Join-Path $env:USERPROFILE ".local\bin"),
+    (Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Links"),
+    (Join-Path $env:USERPROFILE "go\bin")
+)
+
+$linked = $false
+foreach ($candidate in $pathCandidates) {
+    if (-not (Test-Path -LiteralPath $candidate)) { continue }
+    if (-not (Test-PathInUserPath $candidate)) { continue }
+
+    $linkPath = Add-BinaryLink -Source $dest -TargetDir $candidate
+    Write-Host "Linked $linkPath -> $dest"
+    $linked = $true
+    break
 }
+
+if (-not $linked) {
+    if (Add-ToUserPath $InstallDir) {
+        Write-Host "Added $InstallDir to the front of user PATH."
+    } else {
+        Write-Host "$InstallDir is already in user PATH."
+    }
+}
+
+Notify-PathChanged
+$env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+            [Environment]::GetEnvironmentVariable("Path", "User")
 
 Write-Host ""
 Write-Host "Installed to $dest"
-Write-Host "Run: unicli --help"
+Write-Host "Restart your terminal, then run: unicli --help"
