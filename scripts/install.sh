@@ -26,11 +26,6 @@ detect_arch() {
     esac
 }
 
-get_latest_version() {
-    curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" 2>/dev/null | \
-        grep '"tag_name":' | head -1 | sed -E 's/.*"v([^"]+)".*/\1/' || echo "1.0.0"
-}
-
 normalize_version() {
     local v="$1"
     v="${v#v}"
@@ -44,7 +39,12 @@ install_binary() {
     local ver="$3"
 
     local asset="${BINARY_NAME}-${os}-${arch}"
-    local url="https://github.com/${REPO}/releases/download/v${ver}/${asset}"
+    local url
+    if [ "$ver" = "latest" ]; then
+        url="https://github.com/${REPO}/releases/latest/download/${asset}"
+    else
+        url="https://github.com/${REPO}/releases/download/v${ver}/${asset}"
+    fi
     local install_dir="/usr/local/bin"
     local target="${BINARY_NAME}"
 
@@ -76,13 +76,14 @@ main() {
         exit 1
     fi
 
-    if [ "$VERSION" = "latest" ] || [ -z "$VERSION" ]; then
-        VERSION=$(get_latest_version)
+    if [ "$VERSION" != "latest" ] && [ -n "$VERSION" ]; then
+        VERSION=$(normalize_version "$VERSION")
+    else
+        VERSION="latest"
     fi
-    VERSION=$(normalize_version "$VERSION")
 
     echo "Detected: ${OS}/${ARCH}"
-    echo "Installing unicli v${VERSION}..."
+    echo "Installing unicli (${VERSION})..."
 
     install_binary "$OS" "$ARCH" "$VERSION"
 

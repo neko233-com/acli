@@ -12,6 +12,7 @@ $ErrorActionPreference = 'Stop'
 $BinaryName = "unicli"
 $Repo = "neko233-com/unicli"
 $InstallDir = Join-Path $env:LOCALAPPDATA $BinaryName
+$Asset = "${BinaryName}-windows-amd64.exe"
 
 function Get-NormalizedVersion([string]$Value) {
     $v = $Value.Trim()
@@ -19,21 +20,18 @@ function Get-NormalizedVersion([string]$Value) {
     return $v
 }
 
-function Get-LatestVersion {
-    $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases/latest"
-    return Get-NormalizedVersion $release.tag_name
-}
-
 if ($Version -eq "latest" -or [string]::IsNullOrWhiteSpace($Version)) {
-    $Version = Get-LatestVersion
+    $url = "https://github.com/$Repo/releases/latest/download/$Asset"
+    $versionLabel = "latest"
 } else {
     $Version = Get-NormalizedVersion $Version
+    $url = "https://github.com/$Repo/releases/download/v$Version/$Asset"
+    $versionLabel = "v$Version"
 }
 
-$url = "https://github.com/$Repo/releases/download/v$Version/${BinaryName}-windows-amd64.exe"
 $dest = Join-Path $InstallDir "$BinaryName.exe"
 
-Write-Host "Installing ${BinaryName} v$Version for windows/amd64..."
+Write-Host "Installing ${BinaryName} $versionLabel for windows/amd64..."
 Write-Host "Downloading $url..."
 
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
