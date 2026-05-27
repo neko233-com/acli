@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e
 
-# unicli - Universal CLI installer
+# unicli - macOS/Linux installer
 # Usage: curl -fsSL https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.sh | bash
-# Or: curl -fsSL .../install.sh | bash -s -- v1.0.0
+# Or:    curl -fsSL .../install.sh | bash -s -- v1.0.0
+# Windows: use scripts/install.ps1 instead
 
 VERSION="${1:-latest}"
 BINARY_NAME="unicli"
@@ -13,7 +14,6 @@ detect_os() {
     case "$(uname -s)" in
         Linux*)     echo "linux" ;;
         Darwin*)    echo "darwin" ;;
-        CYGWIN*|MINGW*|MSYS*) echo "windows" ;;
         *)          echo "unsupported" ;;
     esac
 }
@@ -44,39 +44,25 @@ install_binary() {
     local ver="$3"
 
     local asset="${BINARY_NAME}-${os}-${arch}"
-    local ext=""
-    [ "$os" = "windows" ] && ext=".exe"
-
-    local url="https://github.com/${REPO}/releases/download/v${ver}/${asset}${ext}"
+    local url="https://github.com/${REPO}/releases/download/v${ver}/${asset}"
     local install_dir="/usr/local/bin"
     local target="${BINARY_NAME}"
 
-    if [ "$os" = "windows" ]; then
-        install_dir="${LOCALAPPDATA:-$HOME/AppData/Local}/unicli"
-        target="${BINARY_NAME}.exe"
-        mkdir -p "$install_dir"
-    fi
-
     echo "Downloading ${url}..."
     TMPDIR=$(mktemp -d)
-    curl -fsSL "$url" -o "${TMPDIR}/${target}${ext}"
+    curl -fsSL "$url" -o "${TMPDIR}/${target}"
 
     if [ -w "$install_dir" ]; then
-        mv -f "${TMPDIR}/${target}${ext}" "${install_dir}/${target}${ext}"
+        mv -f "${TMPDIR}/${target}" "${install_dir}/${target}"
     else
-        sudo mv -f "${TMPDIR}/${target}${ext}" "${install_dir}/${target}${ext}"
+        sudo mv -f "${TMPDIR}/${target}" "${install_dir}/${target}"
     fi
 
-    chmod +x "${install_dir}/${target}${ext}" 2>/dev/null || true
+    chmod +x "${install_dir}/${target}"
     rm -rf "$TMPDIR"
 
-    echo "Installed to ${install_dir}/${target}${ext}"
-
-    if [ "$os" != "windows" ]; then
-        echo "Run: unicli --help"
-    else
-        echo "Add ${install_dir} to PATH, then run: unicli --help"
-    fi
+    echo "Installed to ${install_dir}/${target}"
+    echo "Run: unicli --help"
 }
 
 main() {
@@ -85,6 +71,8 @@ main() {
 
     if [ "$OS" = "unsupported" ]; then
         echo "Unsupported operating system."
+        echo "Windows users: run install.ps1 in PowerShell or CMD."
+        echo "  irm https://raw.githubusercontent.com/${REPO}/main/scripts/install.ps1 | iex"
         exit 1
     fi
 

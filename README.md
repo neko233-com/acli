@@ -2,6 +2,53 @@
 
 A cross-platform network & process CLI tool built with Go 1.23+.
 
+## Installation
+
+### One-Click Install (Recommended)
+
+**macOS / Linux** (`install.sh`)
+```bash
+curl -fsSL https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.sh | bash
+```
+
+**With specific version**
+```bash
+curl -fsSL https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.sh | bash -s -- v1.0.0
+```
+
+**Windows** (`install.ps1` — do not use `.sh` on Windows)
+
+PowerShell:
+```powershell
+irm https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.ps1 | iex
+```
+
+CMD:
+```cmd
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.ps1 | iex"
+```
+
+**With specific version (Windows)**
+```powershell
+irm https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.ps1 -OutFile $env:TEMP\unicli-install.ps1
+& $env:TEMP\unicli-install.ps1 v1.0.0
+```
+
+### From Source
+```bash
+go install github.com/neko233-com/unicli@latest
+```
+
+### Pre-built Binaries
+Download from [GitHub Releases](https://github.com/neko233-com/unicli/releases)
+
+### Package Managers
+
+**macOS**
+```bash
+brew install neko233-com/unicli/unicli
+```
+
 ## Purpose
 
 unicli is designed to reduce learning curve for network diagnostics and provide a unified interface across Windows, Linux, and macOS. Perfect for system administrators, DevOps engineers, and developers who need quick network insights.
@@ -60,35 +107,6 @@ unicli scan 192.168.1.1 --start 80 --end 443
 
 # Check memory usage
 unicli mem
-```
-
-## Installation
-
-### One-Click Install (Recommended)
-
-**All Platforms (Linux/macOS/Windows)**
-```bash
-curl -fsSL https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.sh | bash
-```
-
-**With specific version**
-```bash
-curl -fsSL https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.sh | bash -s -- v1.0.0
-```
-
-### From Source
-```bash
-go install github.com/neko233-com/unicli@latest
-```
-
-### Pre-built Binaries
-Download from [GitHub Releases](https://github.com/neko233-com/unicli/releases)
-
-### Package Managers
-
-**macOS**
-```bash
-brew install neko233-com/unicli/unicli
 ```
 
 ## Cross-Platform Support

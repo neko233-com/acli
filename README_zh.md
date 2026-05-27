@@ -2,6 +2,53 @@
 
 跨平台网络与进程管理 CLI 工具，基于 Go 1.23+ 构建。
 
+## 安装
+
+### 一键安装（推荐）
+
+**macOS / Linux**（`install.sh`）
+```bash
+curl -fsSL https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.sh | bash
+```
+
+**指定版本安装**
+```bash
+curl -fsSL https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.sh | bash -s -- v1.0.0
+```
+
+**Windows**（`install.ps1`，请勿在 Windows 上使用 `.sh`）
+
+PowerShell：
+```powershell
+irm https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.ps1 | iex
+```
+
+CMD：
+```cmd
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.ps1 | iex"
+```
+
+**指定版本安装（Windows）**
+```powershell
+irm https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.ps1 -OutFile $env:TEMP\unicli-install.ps1
+& $env:TEMP\unicli-install.ps1 v1.0.0
+```
+
+### 源码安装
+```bash
+go install github.com/neko233-com/unicli@latest
+```
+
+### 预编译二进制
+从 [GitHub Releases](https://github.com/neko233-com/unicli/releases) 下载
+
+### 包管理器
+
+**macOS**
+```bash
+brew install neko233-com/unicli/unicli
+```
+
 ## 目标
 
 unicli 致力于降低网络诊断的学习成本，为 Windows、Linux、macOS 提供统一的操作界面。适用于系统管理员、DevOps 工程师和需要快速获取网络信息的开发者。
@@ -60,35 +107,6 @@ unicli scan 192.168.1.1 --start 80 --end 443
 
 # 查看内存使用
 unicli mem
-```
-
-## 安装
-
-### 一键安装（推荐）
-
-**全平台 (Linux/macOS/Windows)**
-```bash
-curl -fsSL https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.sh | bash
-```
-
-**指定版本安装**
-```bash
-curl -fsSL https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.sh | bash -s -- v1.0.0
-```
-
-### 源码安装
-```bash
-go install github.com/neko233-com/unicli@latest
-```
-
-### 预编译二进制
-从 [GitHub Releases](https://github.com/neko233-com/unicli/releases) 下载
-
-### 包管理器
-
-**macOS**
-```bash
-brew install neko233-com/unicli/unicli
 ```
 
 ## 跨平台支持
