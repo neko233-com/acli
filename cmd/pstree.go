@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -15,6 +16,35 @@ var pstreeCmd = &cobra.Command{
 	Short: "Show process tree",
 	Long:  `Display running processes in a tree view showing parent-child relationships.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		jsonOut, _ := cmd.Flags().GetBool("json")
+		rootPID, _ := cmd.Flags().GetInt("pid")
+		if jsonOut || rootPID > 0 {
+			processes, err := collectProcesses()
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+				os.Exit(1)
+			}
+			if rootPID > 0 {
+				tree, ok := findProcessTree(processes, rootPID)
+				if !ok {
+					fmt.Printf("Process not found: %d\n", rootPID)
+					os.Exit(1)
+				}
+				if jsonOut {
+					printProcessJSON(tree)
+				} else {
+					printProcessTree([]procInfo{tree}, "")
+				}
+				return
+			}
+			roots := processForest(processes)
+			if jsonOut {
+				printProcessJSON(roots)
+			} else {
+				printProcessTree(roots, "")
+			}
+			return
+		}
 		var cmdExec *exec.Cmd
 
 		switch runtime.GOOS {
@@ -32,6 +62,37 @@ var pstreeCmd = &cobra.Command{
 		cmdExec.Stderr = os.Stderr
 		cmdExec.Run()
 	},
+}
+
+func init() {
+	pstreeCmd.Flags().Bool("json", false, "Output JSON for agents/scripts")
+	pstreeCmd.Flags().Int("pid", 0, "Show tree rooted at PID")
+}
+
+func processForest(processes []procInfo) []procInfo {
+	byPID := map[int]procInfo{}
+	byParent := map[int][]procInfo{}
+	for _, p := range processes {
+		byPID[p.PID] = p
+		byParent[p.PPID] = append(byParent[p.PPID], p)
+	}
+	roots := []procInfo{}
+	for _, p := range processes {
+		if _, ok := byPID[p.PPID]; !ok {
+			roots = append(roots, attachChildren(p, byParent))
+		}
+	}
+	sort.Slice(roots, func(i, j int) bool { return roots[i].PID < roots[j].PID })
+	return roots
+}
+
+func printProcessTree(processes []procInfo, indent string) {
+	for _, p := range processes {
+		fmt.Printf("%s%d %s\n", indent, p.PID, p.Name)
+		if len(p.Children) > 0 {
+			printProcessTree(p.Children, indent+"  ")
+		}
+	}
 }
 
 var pssearchCmd = &cobra.Command{

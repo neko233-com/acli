@@ -63,6 +63,7 @@ unicli is designed to reduce learning curve for network diagnostics and provide 
 - **Connectivity** - Ping, traceroute, port scanning
 - **HTTP Tools** - HTTP requests, SSL certificate check
 - **Speed Test** - Download bandwidth measurement
+- **Remote Access** - SSH command execution and SCP-style file copy with auto key bootstrap
 
 ### Process Commands
 - **Process List** - View all running processes
@@ -76,12 +77,15 @@ unicli is designed to reduce learning curve for network diagnostics and provide 
 - **CPU Info** - Model, cores, current usage
 - **Memory Info** - Physical and virtual memory
 - **Disk Usage** - Mounted partitions space
+- **File Monitoring** - Tail logs and watch file changes
 
 ## Quick Start
 
 ```bash
 # Show local IPs
 unicli ip
+unicli ip --json
+unicli netinfo --json
 
 # Check public IP
 unicli publicip
@@ -100,6 +104,7 @@ unicli connect 8.8.8.8
 
 # DNS lookup
 unicli dns github.com
+unicli dns github.com --json
 
 # Check SSL certificate
 unicli ssl github.com
@@ -109,6 +114,55 @@ unicli scan 192.168.1.1 --start 80 --end 443
 
 # Check memory usage
 unicli mem
+
+# Run remote command; first password login installs default SSH key
+unicli ssh user@example.com "uname -a"
+# stdout/stderr/stdin stream live; long-running commands print as they run
+
+# Open interactive SSH shell
+unicli ssh user@example.com
+
+# Save SSH account profile (passwords are not stored)
+unicli ssh add prod --host example.com --user deploy --key ~/.ssh/id_ed25519
+unicli ssh prod "uptime"
+unicli ssh exec --group prod -- "uptime"
+
+# Copy files over SSH/SFTP
+unicli scp ./app.log prod:/tmp/app.log
+unicli scp prod:/var/log/app.log ./app.log
+unicli scp -r ./config prod:/etc/myapp/config
+unicli sync ./config prod:/etc/myapp/config --delete
+# uploads/downloads stream through SFTP
+
+# Export/import account profiles
+unicli ssh export ssh-accounts.json
+unicli ssh import ssh-accounts.json
+
+# Follow local or remote logs
+unicli tail -f /var/log/app.log
+unicli tail -f prod:/var/log/app.log
+
+# Watch file or directory changes
+unicli watchfile ./logs
+
+# One-shot ops checks
+unicli health --json --port 80 --port 443
+unicli check --dns github.com --http https://github.com --disk-max 90
+unicli top --json --limit 10
+unicli ports --json
+unicli incident
+
+# Unified logs
+unicli logs ./app.log -n 100
+unicli logs prod:/var/log/app.log -f
+unicli logs --service nginx -f
+
+# Startup CRUD
+unicli startup list --json
+unicli startup add my-agent -- unicli alert --disk-max 90
+unicli startup disable my-agent
+unicli startup enable my-agent
+unicli startup remove my-agent
 ```
 
 ## Cross-Platform Support
@@ -136,14 +190,16 @@ go build -ldflags="-s -w" -o unicli.exe .
 | Command | Description |
 |---------|-------------|
 | `unicli ip` | Show local IP addresses |
+| `unicli ip --json --family ipv4` | Show structured local IPv4/IPv6 data |
 | `unicli iface` | Show detailed network interfaces |
 | `unicli publicip` | Show public IP address |
+| `unicli netinfo --json` | Show agent-friendly hostname, IPs, DNS servers, and route |
 | `unicli port <port>` | Check if port is in use |
 | `unicli listen` | Show all listening ports |
 | `unicli conn` | Show network connections |
 | `unicli netstat` | Show network statistics |
 | `unicli connect <host>` | Test connectivity to host |
-| `unicli dns <domain>` | DNS lookup (A, AAAA, MX, NS) |
+| `unicli dns <domain> --json` | Structured DNS lookup (A, AAAA, CNAME, MX, NS) |
 | `unicli lookup <ip>` | Reverse DNS lookup |
 | `unicli whois <domain>` | WHOIS lookup |
 | `unicli ping <host>` | Ping host with ICMP |
@@ -152,16 +208,27 @@ go build -ldflags="-s -w" -o unicli.exe .
 | `unicli http <url>` | Make HTTP request |
 | `unicli ssl <host>` | Check SSL certificate |
 | `unicli speedtest` | Test download speed |
+| `unicli ssh [profile|user@host] [command]` | Run remote command or interactive shell with auto key bootstrap |
+| `unicli ssh add/list/remove/export/import` | Manage SSH account profiles without storing passwords |
+| `unicli ssh exec --all/--group` | Run command across SSH profiles with live prefixed output |
+| `unicli scp <src> <dst>` | Copy files over SSH/SFTP |
+| `unicli scp -r <src> <dst>` | Copy directories recursively |
+| `unicli sync <src> <dst> [--delete]` | Lightweight rsync-style SFTP sync |
 
 ### Process
 
 | Command | Description |
 |---------|-------------|
 | `unicli ps` | List running processes |
+| `unicli ps --json --filter node` | Structured process list for agents |
+| `unicli proc <pid> --json` | Show one process with child dependency tree |
+| `unicli top --json/--stream` | Agent-friendly process monitor |
 | `unicli pstree` | Show process tree |
+| `unicli pstree --json --pid <pid>` | Structured parent/child process tree |
 | `unicli pssearch <name>` | Search processes by name |
 | `unicli psports <port>` | Show process using port |
 | `unicli kill <pid>` | Kill process by PID |
+| `unicli kill <pid> --tree --dry-run` | Preview/kill process and descendants |
 
 ### System
 
@@ -176,6 +243,16 @@ go build -ldflags="-s -w" -o unicli.exe .
 
 | Command | Description |
 |---------|-------------|
+| `unicli tail [-f] <file|remote>` | Show and follow local or remote logs |
+| `unicli watchfile <path>` | Watch file or directory changes |
+| `unicli logs [file|remote|--service name]` | Unified local, remote, and service logs |
+| `unicli health --json` | One-shot system health summary |
+| `unicli check --dns/--http/--port/--disk-max` | Declarative ops checks |
+| `unicli ports --json` | Structured listening/active ports |
+| `unicli incident` | Collect incident diagnostics JSON |
+| `unicli alert --once/--interval` | Emit JSON alert events for failed checks |
+| `unicli watch -- <command>` | Re-run command periodically |
+| `unicli startup list/add/remove/enable/disable` | Manage user startup entries |
 | `unicli version` | Show version info |
 | `unicli update` | Self-update to latest release (`-y` / `--check` / `--version`) |
 | `unicli agent` | Print agent/LLM usage guide (when to prefer unicli) |

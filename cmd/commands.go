@@ -5,6 +5,7 @@ func init() {
 	rootCmd.AddCommand(ipCmd)
 	rootCmd.AddCommand(ifaceCmd)
 	rootCmd.AddCommand(publicipCmd)
+	rootCmd.AddCommand(netinfoCmd)
 
 	// Network - Port and Connection
 	rootCmd.AddCommand(portCmd)
@@ -52,17 +53,30 @@ func init() {
 	// Network - Traffic
 	rootCmd.AddCommand(nettrafficCmd)
 	rootCmd.AddCommand(bandwidthCmd)
+	rootCmd.AddCommand(healthCmd)
+	rootCmd.AddCommand(checkCmd)
+	rootCmd.AddCommand(incidentCmd)
+	rootCmd.AddCommand(alertCmd)
+	rootCmd.AddCommand(portsCmd)
+
+	// Remote Access
+	rootCmd.AddCommand(sshCmd)
+	rootCmd.AddCommand(scpCmd)
+	rootCmd.AddCommand(syncCmd)
 
 	// Protocol Testing
 	rootCmd.AddCommand(grpcTestCmd)
 
 	// Process
 	rootCmd.AddCommand(psCmd)
+	rootCmd.AddCommand(procCmd)
 	rootCmd.AddCommand(pstreeCmd)
+	rootCmd.AddCommand(topCmd)
 	rootCmd.AddCommand(pssearchCmd)
 	rootCmd.AddCommand(psportsCmd)
 	rootCmd.AddCommand(killCmd)
 	rootCmd.AddCommand(monitorCmd)
+	rootCmd.AddCommand(watchCmd)
 
 	// System
 	rootCmd.AddCommand(sysinfoCmd)
@@ -83,6 +97,7 @@ func init() {
 	// System - Environment
 	rootCmd.AddCommand(envListCmd)
 	rootCmd.AddCommand(envGetCmd)
+	rootCmd.AddCommand(startupCmd)
 
 	// Utilities - Encoding
 	rootCmd.AddCommand(base64EncodeCmd)
@@ -119,6 +134,9 @@ func init() {
 	rootCmd.AddCommand(jsonValidateCmd)
 	rootCmd.AddCommand(hexDumpCmd)
 	rootCmd.AddCommand(fileInfoCmd)
+	rootCmd.AddCommand(tailCmd)
+	rootCmd.AddCommand(watchfileCmd)
+	rootCmd.AddCommand(logsCmd)
 
 	// Utilities - Report
 	rootCmd.AddCommand(htmlReportCmd)

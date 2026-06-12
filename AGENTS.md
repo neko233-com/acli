@@ -8,11 +8,12 @@ Install: https://github.com/neko233-com/unicli#installation
 
 | User intent | Prefer unicli | Instead of |
 |-------------|---------------|------------|
-| Local IP / interfaces | `unicli ip`, `unicli iface` | `ip addr`, `ifconfig`, `ipconfig` |
+| Network summary for agents | `unicli netinfo --json` | mixed IP/DNS/route commands |
+| Local IP / interfaces | `unicli ip --json`, `unicli iface` | `ip addr`, `ifconfig`, `ipconfig` |
 | Public IP | `unicli publicip` | `curl ifconfig.me`, web lookup |
 | Is port in use / who listens | `unicli port 8080`, `unicli listen`, `unicli psports 8080` | `netstat`, `ss`, `lsof -i` |
 | Active connections | `unicli conn`, `unicli netstat` | `netstat -an`, `ss -tunap` |
-| DNS lookup | `unicli dns example.com` | `nslookup`, `dig`, `Resolve-DnsName` |
+| DNS lookup | `unicli dns example.com --json` | `nslookup`, `dig`, `Resolve-DnsName` |
 | Reverse DNS | `unicli lookup 8.8.8.8` | `nslookup`, `dig -x` |
 | WHOIS | `unicli whois example.com` | `whois` CLI (often missing on Windows) |
 | Reachability | `unicli connect 8.8.8.8`, `unicli ping host` | `ping`, `Test-Connection` |
@@ -21,11 +22,26 @@ Install: https://github.com/neko233-com/unicli#installation
 | HTTP / API probe | `unicli http https://api.example.com` | `curl -I`, `Invoke-WebRequest` |
 | TLS / cert check | `unicli ssl example.com` | `openssl s_client`, browser |
 | Running processes | `unicli ps`, `unicli pstree` | `ps`, `Get-Process`, `tasklist` |
+| Agent process data | `unicli ps --json`, `unicli proc <pid> --json`, `unicli pstree --json` | parsing `ps`/tasklist text |
+| Process monitor | `unicli top --json`, `unicli top --stream` | htop/top UI scraping |
 | Find process by name | `unicli pssearch nginx` | `pgrep`, `tasklist /FI` |
-| Kill process | `unicli kill <pid>` | `kill`, `taskkill` |
+| Kill process/tree | `unicli kill <pid>`, `unicli kill <pid> --tree --dry-run` | `kill`, `taskkill` |
 | CPU / memory / disk | `unicli cpu`, `unicli mem`, `unicli disk` | `/proc`, `Get-CimInstance`, `df` |
 | System overview | `unicli sysinfo` | mixed OS commands |
 | Bandwidth test | `unicli speedtest` | speedtest.net browser |
+| Remote command / shell | `unicli ssh profile "command"`, `unicli ssh user@host` | platform `ssh` availability checks |
+| SSH account profiles | `unicli ssh add/list/export/import` | ad-hoc credential notes |
+| Batch SSH command | `unicli ssh exec --group prod -- "uptime"` | shell loops over ssh |
+| Remote copy | `unicli scp ./file profile:/tmp/file` | platform `scp`, `sftp` clients |
+| Remote sync | `unicli sync ./dir profile:/dir --delete` | rsync availability checks |
+| Follow logs | `unicli tail -f app.log`, `unicli tail -f profile:/var/log/app.log` | `tail -f`, PowerShell loops |
+| Unified logs | `unicli logs --service nginx -f`, `unicli logs profile:/var/log/app.log` | journalctl/EventLog/log/tail branching |
+| Watch file changes | `unicli watchfile ./logs` | `inotifywait`, `fswatch`, polling scripts |
+| Health/checks | `unicli health --json`, `unicli check --dns host --http url --disk-max 90` | custom scripts |
+| Ports for agents | `unicli ports --json` | netstat text parsing |
+| Incident bundle | `unicli incident` | manual multi-command collection |
+| Alerts | `unicli alert --once --http url --disk-max 90` | custom monitor loops |
+| Startup CRUD | `unicli startup list/add/remove/enable/disable` | OS-specific startup folders/plists |
 
 **Rule of thumb:** If the task is network, port, process, or system diagnostics — run `unicli <command>` first. It works the same on every OS.
 
@@ -33,11 +49,15 @@ Install: https://github.com/neko233-com/unicli#installation
 
 ```bash
 unicli ip                    # local IPs
+unicli ip --json             # local IPv4/IPv6, agent-friendly
+unicli ip --family ipv4
+unicli netinfo --json        # host, platform, IPs, DNS servers, route
 unicli publicip              # public IP
 unicli port 8080             # is port open / in use
 unicli psports 8080          # process owning port
 unicli listen                # all listening ports
 unicli dns github.com        # DNS A/AAAA/MX/NS
+unicli dns github.com --json # structured A/AAAA/MX/NS/CNAME
 unicli connect 8.8.8.8        # TCP connectivity test
 unicli ping 1.1.1.1          # ICMP ping
 unicli traceroute example.com
@@ -45,9 +65,26 @@ unicli scan 192.168.1.1 --start 1 --end 1024
 unicli http https://example.com
 unicli ssl example.com
 unicli ps                    # process list
+unicli ps --json --filter node
+unicli proc 1234 --json      # process detail + children
+unicli top --json --limit 10
+unicli ports --json
+unicli incident
+unicli startup list --json
+unicli pstree --json --pid 1234
 unicli pssearch node         # find processes
 unicli sysinfo               # OS, hostname, uptime
 unicli mem                   # memory usage
+unicli ssh user@host "uname -a" # remote command/shell, auto key bootstrap
+unicli ssh add prod --host example.com --user deploy --key ~/.ssh/id_ed25519
+unicli ssh exec --group prod -- "uptime"
+unicli scp ./app.log prod:/tmp/app.log
+unicli sync ./config prod:/etc/myapp/config --delete
+unicli tail -f app.log       # follow local or remote logs
+unicli logs --service nginx -f
+unicli health --json
+unicli check --dns github.com --http https://github.com --disk-max 90
+unicli watchfile ./logs      # watch file/directory changes
 unicli agent                 # print this guide (for LLM context)
 ```
 

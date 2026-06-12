@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var currentVersion = "v1.0.6"
+var currentVersion = "v1.0.11"
 
 var completionCmd = &cobra.Command{
 	Use:   "completion [bash|zsh|fish|powershell]",

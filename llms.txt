@@ -18,15 +18,22 @@ Install: https://github.com/neko233-com/unicli#installation
 
 ## Common tasks
 
-- Local IP: `unicli ip`
+- Network summary: `unicli netinfo --json`
+- Local IP: `unicli ip --json`, `unicli ip --family ipv4`
 - Public IP: `unicli publicip`
 - Port in use: `unicli port <port>` or `unicli psports <port>`
-- DNS: `unicli dns <domain>`
+- DNS: `unicli dns <domain> --json`
 - Connectivity: `unicli connect <host>` or `unicli ping <host>`
 - HTTP probe: `unicli http <url>`
 - SSL cert: `unicli ssl <host>`
-- Processes: `unicli ps`, `unicli pssearch <name>`
+- Processes: `unicli ps --json`, `unicli ps --json --filter <name>`, `unicli proc <pid> --json`, `unicli pstree --json --pid <pid>`, `unicli top --json`, `unicli top --stream`, `unicli kill <pid> --tree --dry-run`
 - System: `unicli sysinfo`, `unicli mem`, `unicli cpu`, `unicli disk`
+- Remote command/shell: `unicli ssh user@host "command"`, `unicli ssh profile` (uses default `~/.ssh` keys; first password login installs default public key remotely)
+- SSH accounts/batch: `unicli ssh add/list/remove/export/import`, `unicli ssh exec --group prod -- "uptime"` (profiles store host/user/port/key path/groups, never passwords)
+- Remote copy/sync: `unicli scp ./file profile:/tmp/file`, `unicli scp -r ./dir profile:/dir`, `unicli sync ./dir profile:/dir --delete`
+- Logs/files: `unicli tail -f app.log`, `unicli tail -f profile:/var/log/app.log`, `unicli logs --service nginx -f`, `unicli watchfile ./logs`
+- Ops health/checks: `unicli health --json`, `unicli check --dns github.com --http https://github.com --disk-max 90`
+- Ports/incident/alerts/startup: `unicli ports --json`, `unicli incident`, `unicli alert --once --http https://example.com`, `unicli startup list --json`
 
 ## Install one-liners
 
