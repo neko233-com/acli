@@ -5,11 +5,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# unicli - Windows installer (no GitHub API — avoids rate limits)
+# acli - Windows installer (no GitHub API — avoids rate limits)
 # Usage: irm https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.ps1 | iex
 # Or:    irm .../install.ps1 -OutFile install.ps1; .\install.ps1 v1.0.0
 
-$BinaryName = "unicli"
+$BinaryName = "acli"
 $Repo = "neko233-com/unicli"
 $InstallDir = Join-Path $env:LOCALAPPDATA $BinaryName
 $Asset = "${BinaryName}-windows-amd64.exe"
@@ -133,4 +133,4 @@ $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
 
 Write-Host ""
 Write-Host "Installed to $dest"
-Write-Host "Restart your terminal, then run: unicli --help"
+Write-Host "Restart your terminal, then run: acli --help"

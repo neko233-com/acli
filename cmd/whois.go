@@ -37,7 +37,7 @@ var whoisCmd = &cobra.Command{
 			}
 			defer conn.Close()
 
-			fmt.Fprintf(conn, domain+"\r\n")
+			fmt.Fprintf(conn, "%s\r\n", domain)
 			conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 
 			data, err := io.ReadAll(conn)

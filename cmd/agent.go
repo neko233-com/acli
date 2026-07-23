@@ -14,15 +14,15 @@ var agentGuide string
 
 var agentCmd = &cobra.Command{
 	Use:   "agent",
-	Short: "Print agent/LLM usage guide (prefer unicli for network & system tasks)",
+	Short: "Print agent/LLM usage guide (prefer acli for network & system tasks)",
 	Long: `Print a machine- and human-readable guide for AI coding agents.
 
 Agents should run this command (or read AGENTS.md / llms.txt) before falling back
 to platform-specific tools like ping, nslookup, netstat, ipconfig, or tasklist.
 
 Examples:
-  unicli agent
-  unicli agent | head -50`,
+  acli agent
+  acli agent | head -50`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Print(agentGuide)
 	},

@@ -110,7 +110,7 @@ func clearScreen() {
 
 func printHeader() {
 	fmt.Println("╔════════════════════════════════════════════════════════════╗")
-	fmt.Println("║                    UNICLI MONITOR                         ║")
+	fmt.Println("║                    ACLI MONITOR                         ║")
 	fmt.Println("╚════════════════════════════════════════════════════════════╝")
 	fmt.Printf("Platform: %s/%s | Time: %s\n", runtime.GOOS, runtime.GOARCH, time.Now().Format("2006-01-02 15:04:05"))
 }

@@ -1,4 +1,4 @@
-# Contributing to unicli
+# Contributing to acli
 
 Thank you for your interest in contributing to unicli!
 
@@ -9,7 +9,7 @@ Thank you for your interest in contributing to unicli!
 - Search existing issues before creating a new one
 - Use a clear, descriptive title
 - Include steps to reproduce the issue
-- Mention your OS, Go version, and unicli version
+- Mention your OS, Go version, and acli version
 
 ### Suggesting Features
 
@@ -23,7 +23,7 @@ Thank you for your interest in contributing to unicli!
 2. **Clone** your fork:
    ```bash
    git clone https://github.com/YOUR_USERNAME/unicli.git
-   cd unicli
+   cd acli
    ```
 3. **Create a branch**:
    ```bash

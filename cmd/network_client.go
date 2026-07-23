@@ -33,7 +33,7 @@ var tcpClientCmd = &cobra.Command{
 		fmt.Printf("Connected to %s\n", addr)
 
 		if message != "" {
-			fmt.Fprintf(conn, message+"\n")
+			fmt.Fprintln(conn, message)
 			fmt.Printf("Sent: %s\n", message)
 		}
 
@@ -66,7 +66,7 @@ var udpClientCmd = &cobra.Command{
 		fmt.Printf("Connected to %s\n", addr)
 
 		if message != "" {
-			fmt.Fprintf(conn, message+"\n")
+			fmt.Fprintln(conn, message)
 			fmt.Printf("Sent: %s\n", message)
 		}
 

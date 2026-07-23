@@ -18,7 +18,7 @@ import (
 
 const (
 	updateRepo      = "neko233-com/unicli"
-	updateBinary    = "unicli"
+	updateBinary    = "acli"
 	githubAPI       = "https://api.github.com/repos/" + updateRepo + "/releases"
 	updateUserAgent = "unicli/" + updateBinary
 )
@@ -37,14 +37,14 @@ func init() {
 
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Update unicli to the latest release",
-	Long: `Download and install the latest unicli release from GitHub.
+	Short: "Update acli to the latest release",
+	Long: `Download and install the latest acli release from GitHub.
 
 Examples:
-  unicli update              Check and install if a newer version exists
-  unicli update --check      Only show current vs latest version
-  unicli update -y           Install latest without confirmation
-  unicli update --version v1.0.5   Install a specific release`,
+  acli update              Check and install if a newer version exists
+  acli update --check      Only show current vs latest version
+  acli update -y           Install latest without confirmation
+  acli update --version v1.0.5   Install a specific release`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := runUpdate(); err != nil {
 			fmt.Fprintf(os.Stderr, "Update failed: %v\n", err)
@@ -75,7 +75,7 @@ func runUpdate() error {
 	}
 
 	if updateCheckOnly {
-		fmt.Println("A newer version is available. Run: unicli update -y")
+		fmt.Println("A newer version is available. Run: acli update -y")
 		return nil
 	}
 

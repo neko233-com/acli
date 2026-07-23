@@ -36,7 +36,7 @@ if ($VersionArg) {
 }
 
 Write-Host "========================================"
-Write-Host "  unicli Auto Deploy to GitHub"
+Write-Host "  acli Auto Deploy to GitHub"
 Write-Host "========================================"
 Write-Host "Repository:  $Repo"
 Write-Host "New Version: $newVersion"

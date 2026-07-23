@@ -38,3 +38,22 @@ Thumbs.db
 # Temporary
 tmp/
 temp/
+
+# Local runtime, downloader, and generated artifacts
+.acli/
+.acli-download-*
+*.partial
+*.part
+output/
+coverage/
+playwright-report/
+test-results/
+
+# Local secrets and per-machine environment
+.env
+.env.*
+!.env.example
+config_acme.local.json
+
+# JavaScript package installs
+node_modules/

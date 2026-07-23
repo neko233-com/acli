@@ -188,18 +188,30 @@ func uploadFile(client *sftp.Client, localPath, remotePath string, modTime time.
 		return err
 	}
 	defer src.Close()
-	dst, err := client.Create(remotePath)
+	temporary := fmt.Sprintf("%s.unicli-partial-%d", remotePath, time.Now().UnixNano())
+	dst, err := client.Create(temporary)
 	if err != nil {
+		_ = client.Remove(temporary)
 		return err
 	}
 	if _, err := io.Copy(dst, src); err != nil {
 		dst.Close()
+		_ = client.Remove(temporary)
 		return err
 	}
 	if err := dst.Close(); err != nil {
+		_ = client.Remove(temporary)
 		return err
 	}
-	return client.Chtimes(remotePath, modTime, modTime)
+	if err := client.Chtimes(temporary, modTime, modTime); err != nil {
+		_ = client.Remove(temporary)
+		return err
+	}
+	if err := replaceRemoteFile(client, temporary, remotePath); err != nil {
+		_ = client.Remove(temporary)
+		return err
+	}
+	return nil
 }
 
 func downloadFile(client *sftp.Client, remotePath, localPath string, modTime time.Time) error {
@@ -211,18 +223,23 @@ func downloadFile(client *sftp.Client, remotePath, localPath string, modTime tim
 		return err
 	}
 	defer src.Close()
-	dst, err := os.Create(localPath)
+	temp, err := os.CreateTemp(filepath.Dir(localPath), ".unicli-sync-*")
 	if err != nil {
 		return err
 	}
-	if _, err := io.Copy(dst, src); err != nil {
-		dst.Close()
+	tempName := temp.Name()
+	defer os.Remove(tempName)
+	if _, err := io.Copy(temp, src); err != nil {
+		temp.Close()
 		return err
 	}
-	if err := dst.Close(); err != nil {
+	if err := temp.Close(); err != nil {
 		return err
 	}
-	return os.Chtimes(localPath, modTime, modTime)
+	if err := os.Chtimes(tempName, modTime, modTime); err != nil {
+		return err
+	}
+	return os.Rename(tempName, localPath)
 }
 
 func sameFile(a, b os.FileInfo) bool {

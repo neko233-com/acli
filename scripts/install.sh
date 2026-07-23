@@ -1,13 +1,13 @@
 #!/bin/bash
 set -e
 
-# unicli - macOS/Linux installer
+# acli - macOS/Linux installer
 # Usage: curl -fsSL https://raw.githubusercontent.com/neko233-com/unicli/main/scripts/install.sh | bash
 # Or:    curl -fsSL .../install.sh | bash -s -- v1.0.0
 # Windows: use scripts/install.ps1 instead
 
 VERSION="${1:-latest}"
-BINARY_NAME="unicli"
+BINARY_NAME="acli"
 REPO="neko233-com/unicli"
 
 detect_os() {
@@ -62,7 +62,7 @@ install_binary() {
     rm -rf "$TMPDIR"
 
     echo "Installed to ${install_dir}/${target}"
-    echo "Run: unicli --help"
+    echo "Run: acli --help"
 }
 
 main() {
@@ -83,7 +83,7 @@ main() {
     fi
 
     echo "Detected: ${OS}/${ARCH}"
-    echo "Installing unicli (${VERSION})..."
+    echo "Installing acli (${VERSION})..."
 
     install_binary "$OS" "$ARCH" "$VERSION"
 

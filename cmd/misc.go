@@ -20,15 +20,15 @@ To load completions:
 
 Bash:
 
-  $ source <(unicli completion bash)
+  $ source <(acli completion bash)
 
   # To load completions for each session, execute once:
 
   # Linux:
-  $ unicli completion bash > /etc/bash_completion.d/unicli
+  $ acli completion bash > /etc/bash_completion.d/acli
 
   # macOS:
-  $ unicli completion bash > /usr/local/etc/bash_completion.d/unicli
+  $ acli completion bash > /usr/local/etc/bash_completion.d/acli
 
 Zsh:
 
@@ -37,14 +37,14 @@ Zsh:
 
   # autoload - compinit; compinit
 
-  $ unicli completion zsh > "${fpath[1]}/_unicli"
+  $ acli completion zsh > "${fpath[1]}/_unicli"
 
 Fish:
 
-  $ unicli completion fish | source
+  $ acli completion fish | source
 
   # To load completions for each session, execute once:
-  $ unicli completion fish > ~/.config/fish/completions/unicli.fish`,
+  $ acli completion fish > ~/.config/fish/completions/unicli.fish`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		shell := args[0]
@@ -68,7 +68,7 @@ var versionCmd = &cobra.Command{
 	Short: "Show version information",
 	Long:  `Display version and build information for unicli.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("unicli %s\n", currentVersion)
+		fmt.Printf("acli %s\n", currentVersion)
 		fmt.Printf("Go version: %s\n", runtime.Version())
 		fmt.Printf("Platform:   %s/%s\n", runtime.GOOS, runtime.GOARCH)
 		fmt.Println("\nWebsite: https://github.com/neko233-com/unicli")
@@ -78,7 +78,7 @@ var versionCmd = &cobra.Command{
 var docCmd = &cobra.Command{
 	Use:   "doc",
 	Short: "Open documentation",
-	Long:  `Open the unicli documentation in browser. Agents: also see "unicli agent", AGENTS.md, and llms.txt.`,
+	Long:  `Open the acli documentation in browser. Agents: also see "acli agent", AGENTS.md, and llms.txt.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		docURL := "https://github.com/neko233-com/unicli#readme"
 		fmt.Printf("Opening: %s\n", docURL)

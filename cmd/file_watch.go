@@ -18,7 +18,7 @@ var tailCmd = &cobra.Command{
 	Long: `Print the end of a file and optionally follow changes.
 
 Remote paths use SSH: profile:/path or [user@]host:/path. Remote auth uses the same auto key
-bootstrap behavior as unicli ssh.`,
+bootstrap behavior as acli ssh.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		lines, _ := cmd.Flags().GetInt("lines")

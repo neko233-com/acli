@@ -55,9 +55,9 @@ var sshCmd = &cobra.Command{
 	Long: `Run SSH commands or open an interactive shell.
 
 Auth order: default ~/.ssh keys, --key/profile key, then password. If password
-auth succeeds, unicli appends the default public key to remote authorized_keys.
+auth succeeds, acli appends the default public key to remote authorized_keys.
 Passwords are never saved in ssh profiles. Command stdin/stdout/stderr are streamed
-live; unicli does not wait for the remote command to finish before printing output.`,
+live; acli does not wait for the remote command to finish before printing output.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		opts, err := sshOptionsFromFlags(cmd, args[0])
@@ -128,6 +128,15 @@ var sshListCmd = &cobra.Command{
 		if err != nil {
 			exitErr(err)
 		}
+		if jsonOut, _ := cmd.Flags().GetBool("json"); jsonOut {
+			items := make([]sshProfile, 0, len(profiles))
+			for _, profile := range profiles {
+				items = append(items, profile)
+			}
+			sort.Slice(items, func(i, j int) bool { return items[i].Name < items[j].Name })
+			_ = json.NewEncoder(os.Stdout).Encode(items)
+			return
+		}
 		names := make([]string, 0, len(profiles))
 		for name := range profiles {
 			names = append(names, name)
@@ -138,6 +147,28 @@ var sshListCmd = &cobra.Command{
 			p := profiles[name]
 			fmt.Printf("%-18s %-24s %-18s %-6d %-18s %s\n", p.Name, p.Host, p.User, p.Port, strings.Join(p.Groups, ","), p.KeyPath)
 		}
+	},
+}
+
+var sshCheckCmd = &cobra.Command{
+	Use: "check <profile|user@host>", Short: "Check SSH authentication and command execution",
+	Args: cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		opts, err := sshOptionsFromFlags(cmd, args[0])
+		if err != nil {
+			exitErr(err)
+		}
+		opts.noBootstrap = true
+		client, _, _, err := connectSSH(opts)
+		if err != nil {
+			exitErr(err)
+		}
+		defer client.Close()
+		var output bytes.Buffer
+		if err := runSSHCommand(client, "printf unicli-ssh-ok", nil, &output, os.Stderr); err != nil {
+			exitErr(err)
+		}
+		fmt.Printf("OK %s@%s:%d %s\n", opts.user, opts.host, opts.port, strings.TrimSpace(output.String()))
 	},
 }
 
@@ -265,8 +296,8 @@ var scpCmd = &cobra.Command{
 	Long: `Copy files or directories over SSH/SFTP.
 
 Remote paths use [profile:]path or [user@]host:/path. Examples:
-  unicli scp ./app.log prod:/tmp/app.log
-  unicli scp user@example.com:/var/log/app.log ./app.log
+  acli scp ./app.log prod:/tmp/app.log
+  acli scp user@example.com:/var/log/app.log ./app.log
 
 Transfers stream bytes through SFTP; files are not buffered fully in memory.`,
 	Args: cobra.ExactArgs(2),
@@ -277,6 +308,11 @@ Transfers stream bytes through SFTP; files are not buffered fully in memory.`,
 		dstRemote := parseRemotePath(dst)
 		if (srcRemote != nil && dstRemote != nil) || (srcRemote == nil && dstRemote == nil) {
 			exitErr(errors.New("exactly one path must be remote: profile:/path or [user@]host:/path"))
+		}
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		if dryRun {
+			fmt.Printf("COPY %s -> %s\n", src, dst)
+			return
 		}
 
 		target := srcRemote
@@ -358,6 +394,8 @@ func init() {
 		c.Flags().Duration("timeout", 15*time.Second, "Connection timeout")
 	}
 	scpCmd.Flags().BoolP("recursive", "r", false, "Copy directories recursively")
+	scpCmd.Flags().Bool("dry-run", false, "Print transfer without connecting or copying")
+	sshListCmd.Flags().Bool("json", false, "emit profiles as JSON")
 	sshAddCmd.Flags().String("host", "", "SSH host")
 	sshAddCmd.Flags().StringP("user", "u", "", "SSH username")
 	sshAddCmd.Flags().IntP("port", "p", defaultSSHPort, "SSH port")
@@ -366,7 +404,7 @@ func init() {
 	sshExecCmd.Flags().Bool("all", false, "Run on all profiles")
 	sshExecCmd.Flags().String("group", "", "Run on profiles in group")
 	sshExecCmd.Flags().Duration("timeout", 15*time.Second, "Connection timeout")
-	sshCmd.AddCommand(sshAddCmd, sshListCmd, sshRemoveCmd, sshExportCmd, sshImportCmd, sshExecCmd)
+	sshCmd.AddCommand(sshAddCmd, sshListCmd, sshCheckCmd, sshRemoveCmd, sshExportCmd, sshImportCmd, sshExecCmd)
 }
 
 func sshOptionsFromFlags(cmd *cobra.Command, target string) (sshOptions, error) {
@@ -835,13 +873,23 @@ func sftpDownload(client *sftp.Client, remoteFile, localFile string) error {
 		return err
 	}
 	defer src.Close()
-	dst, err := os.Create(localFile)
+	if err := os.MkdirAll(filepath.Dir(localFile), 0755); err != nil {
+		return err
+	}
+	temp, err := os.CreateTemp(filepath.Dir(localFile), ".unicli-scp-*")
 	if err != nil {
 		return err
 	}
-	defer dst.Close()
-	_, err = io.Copy(dst, src)
-	return err
+	tempName := temp.Name()
+	defer os.Remove(tempName)
+	if _, err = io.Copy(temp, src); err != nil {
+		temp.Close()
+		return err
+	}
+	if err = temp.Close(); err != nil {
+		return err
+	}
+	return os.Rename(tempName, localFile)
 }
 
 func sftpUpload(client *sftp.Client, localFile, remoteFile string) error {
@@ -850,13 +898,37 @@ func sftpUpload(client *sftp.Client, localFile, remoteFile string) error {
 		return err
 	}
 	defer src.Close()
-	dst, err := client.Create(remoteFile)
+	tempRemote := fmt.Sprintf("%s.unicli-partial-%d", remoteFile, time.Now().UnixNano())
+	dst, err := client.Create(tempRemote)
 	if err != nil {
 		return err
 	}
-	defer dst.Close()
-	_, err = io.Copy(dst, src)
-	return err
+	if _, err = io.Copy(dst, src); err != nil {
+		dst.Close()
+		_ = client.Remove(tempRemote)
+		return err
+	}
+	if err = dst.Close(); err != nil {
+		_ = client.Remove(tempRemote)
+		return err
+	}
+	if err = replaceRemoteFile(client, tempRemote, remoteFile); err != nil {
+		_ = client.Remove(tempRemote)
+		return err
+	}
+	return nil
+}
+
+func replaceRemoteFile(client *sftp.Client, temporary, destination string) error {
+	if err := client.PosixRename(temporary, destination); err == nil {
+		return nil
+	}
+	// Some old SFTP servers lack the OpenSSH posix-rename extension. The
+	// fallback remains complete-copy-first, then replaces only at final step.
+	if err := client.Remove(destination); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return client.Rename(temporary, destination)
 }
 
 func shellQuote(value string) string {
