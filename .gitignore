@@ -11,6 +11,7 @@ dist/
 *.test
 
 # Output of the go coverage tool
+coverage
 *.out
 
 # Go workspace files
@@ -48,6 +49,7 @@ output/
 coverage/
 playwright-report/
 test-results/
+.playwright-cli/
 
 # Local secrets and per-machine environment
 .env

@@ -60,7 +60,7 @@ var codeSymbolsCmd = &cobra.Command{Use: "symbols <file|dir>", Short: "List Go A
 			}
 		}
 	}
-	return json.NewEncoder(os.Stdout).Encode(symbols)
+	return json.NewEncoder(cmd.OutOrStdout()).Encode(symbols)
 }}
 
 func init() { codeCmd.AddCommand(codeSymbolsCmd) }
